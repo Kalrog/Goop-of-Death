@@ -3,18 +3,20 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.imageio.ImageIO;
 
 public class Screen {
-	public int[][] map;
+	double[] depthBuffer;
 	public int width, height;
 	public BufferedImage testtexture = null;
 
-	public Screen(int[][] m, int w, int h) {
-		map = m;
+	public Screen(int w, int h) {
 		width = w;
 		height = h;
+		depthBuffer = new double[width];
 		try {
 			testtexture = ImageIO.read(new File("resources/arrow.png"));
 		} catch (IOException e) {
@@ -22,17 +24,19 @@ public class Screen {
 		}
 	}
 
-	public void update(Camera cam, BufferedImage img,Texture[] textures) {
+	public void update(Camera cam, BufferedImage img, int[][] map, Texture[] textures, ArrayList<Sprite> sprites,
+			int offset) {
 		Graphics g = img.getGraphics();
-		g.setColor(Color.lightGray);
-		g.fillRect(0, 0, img.getWidth(), img.getHeight() / 2);
-		g.setColor(Color.GRAY);
-		g.fillRect(0, img.getHeight() / 2, img.getWidth(), img.getHeight() / 2);
+		// commented out for fake multi level 3d
+		//		g.setColor(Color.lightGray);
+		//		g.fillRect(0, 0, img.getWidth(), img.getHeight() / 2);
+		//		g.setColor(Color.GRAY);
+		//		g.fillRect(0, img.getHeight() / 2, img.getWidth(), img.getHeight() / 2);
 
-		for (int i = 0; i < width; i++) {
+		for (int x = 0; x < width; x++) {
 			// Direction of the ray sent out
-			double rayXDir = cam.xDir + (2 * i / (double)width - 1) * cam.xPlane;
-			double rayYDir = cam.yDir + (2 * i / (double)width - 1) * cam.yPlane;
+			double rayXDir = cam.xDir + (2 * x / (double) width - 1) * cam.xPlane;
+			double rayYDir = cam.yDir + (2 * x / (double) width - 1) * cam.yPlane;
 			// Position of the ray
 			double rayX = cam.xPos;
 			double rayY = cam.yPos;
@@ -73,8 +77,39 @@ public class Screen {
 				stepY = 1;
 				sideDistY = (mapY + 1 - rayY) * deltaDistY;
 			}
-
-			while (!hit) {
+			boolean inblock = map[mapX][mapY] > 0;
+			boolean wasinblock = map[mapX][mapY] > 0;
+			
+			while (mapX < map.length && mapX > 0&& mapY < map[0].length && mapY > 0 && inblock) {
+				if (sideDistX < sideDistY) {
+					// Next X side (sideDistX) is closer than next Y side -> Go
+					// one X step
+					// Next time the X side (sideDistX) will be one
+					// X-step-length (deltaDistX) further away then it is right
+					// now
+					sideDistX += deltaDistX;
+					// Also go one further on the map
+					mapX += stepX;
+					// Also if you hit a wall now you will have hit it's
+					// horizontal side
+					side = 0;
+				} else {
+					// Next Y side (sideDistY) is closer than next X side -> Go
+					// one Y step
+					// Next time the Y side (sideDistY) will be one
+					// Y-step-length (deltaDistY) further away then it is right
+					// now
+					sideDistY += deltaDistY;
+					// Also go one further on the map
+					mapY += stepY;
+					// Also if you hit a wall now you will have hit it's
+					// vertical side
+					side = 1;
+				}
+				inblock = map[mapX][mapY] > 0;
+			}
+			
+			while (!hit && !inblock) {
 				if (sideDistX < sideDistY) {
 					// Next X side (sideDistX) is closer than next Y side -> Go
 					// one X step
@@ -107,7 +142,7 @@ public class Screen {
 				perpWallDist = (mapX - rayX + (1 - stepX) / 2) / rayXDir;
 			else
 				perpWallDist = (mapY - rayY + (1 - stepY) / 2) / rayYDir;
-			
+
 			int wallLength, wallStart, wallEnd;
 
 			if (perpWallDist > 0) {
@@ -115,24 +150,90 @@ public class Screen {
 			} else {
 				wallLength = height;
 			}
-			wallStart = (int) ((height / 2.0) - (wallLength / 2.0));
+			wallStart = (int) ((height / 2.0) - (wallLength / 2.0) + offset / perpWallDist);
 			//if (wallStart < 0)
 			//	wallStart = 0;
 			// wallEnd = (int) ((height/2.0) - (wallLength/2.0));
-			
+
 			double wallX; //where exactly the wall was hit
-		      if (side == 0) wallX = rayY + perpWallDist * rayYDir;
-		      else           wallX = rayX + perpWallDist * rayXDir;
-		      wallX -= Math.floor((wallX));
-		      int texturepos = (int) (wallX * textures[map[mapX][mapY]-1].width);
-		      if(side == 1 && stepY < 0 || side == 0 && stepX > 0){
-		    	  texturepos = textures[map[mapX][mapY]-1].width - 1 - texturepos;
-		    	  /*if(texturepos < 0)
-		    		  texturepos = 0;
-		    	  if(texturepos >= textures[map[mapX][mapY]-1].width-1)
-		    		  texturepos = textures[map[mapX][mapY]-1].width-2;*/
-		      }
-			g.drawImage(textures[map[mapX][mapY]-1].getLine(texturepos), i,wallStart, 1, wallLength, null);
+			if (side == 0)
+				wallX = rayY + perpWallDist * rayYDir;
+			else
+				wallX = rayX + perpWallDist * rayXDir;
+			wallX -= Math.floor((wallX));
+			int texturepos = (int) (wallX * textures[map[mapX][mapY] - 1].width);
+			if (side == 1 && stepY < 0 || side == 0 && stepX > 0) {
+				texturepos = textures[map[mapX][mapY] - 1].width - 1 - texturepos;
+				/*if(texturepos < 0)
+				  texturepos = 0;
+				if(texturepos >= textures[map[mapX][mapY]-1].width-1)
+				  texturepos = textures[map[mapX][mapY]-1].width-2;*/
+			}
+			g.drawImage(textures[map[mapX][mapY] - 1].getLine(texturepos), x, wallStart, 1, wallLength, null);
+			if(wasinblock){
+			}
+			// save depth of the stripe in the depthbuffer
+			depthBuffer[x] = perpWallDist;
+		}
+
+		if (sprites != null) {
+			Collections.sort(sprites, Sprite.getComparator(cam));
+
+			for (int i = 0; i < sprites.size(); i++) {
+				// Calculate Sprite position relative to player
+				double xSprite = sprites.get(i).x - cam.xPos;
+				double ySprite = sprites.get(i).y - cam.yPos;
+
+				//transform sprite with the inverse camera matrix
+				// [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+				// [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+				// [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+				// Calculate Determinant of the inverse Camera Matrix
+				double invDet = 1.0 / (cam.xPlane * cam.yDir - cam.xDir * cam.yPlane);
+
+				// Transform Sprite x and y coordinate
+				double transformX = invDet * (cam.yDir * xSprite - cam.xDir * ySprite);
+				double transformY = invDet * ((-cam.yPlane) * xSprite + cam.xPlane * ySprite);
+
+				int spriteScreenX = (int) ((width / 2) * (1 + transformX / transformY));
+
+				// height adjustment according to distance from player
+				int zScreen = (int) (sprites.get(i).z / transformY);
+
+				//calculate height of the sprite on screen
+				int spriteHeight = Math.abs((int) (height * sprites.get(i).scaleV / transformY));
+				//calculate highest pixel to fill in current stripe
+				int drawStartY = -spriteHeight / 2 + height / 2 + zScreen;
+				//calculate width of the sprite
+				int spriteWidth = Math.abs((int) (height * sprites.get(i).scaleH / transformY));
+				int drawStartX = -spriteWidth / 2 + spriteScreenX;
+				if (drawStartX < 0)
+					drawStartX = 0;
+				int drawEndX = spriteWidth / 2 + spriteScreenX;
+				if (drawEndX >= width)
+					drawEndX = width - 1;
+
+				for (int x = drawStartX; x < drawEndX; x++) {
+					// Calculate x position on texture
+					int texX = (int) (265 * (x - (-(spriteWidth / 2) + spriteScreenX)) * sprites.get(i).texture.width
+							/ spriteWidth) / 265;
+
+					/*if (texX < 0) {
+						texX = 0;
+					}
+					
+					if (texX > sprites.get(i).texture.width - 2) {
+						texX = sprites.get(i).texture.width - 1;
+					}*/
+
+					if (transformY > 0 && x > 0 && x < width && transformY < depthBuffer[x])
+						g.drawImage(sprites.get(i).texture.getLine(texX), x, drawStartY, 1, spriteHeight, null);
+
+				}
+
+			}
 		}
 	}
+
 }

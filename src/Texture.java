@@ -17,6 +17,11 @@ public class Texture {
 		}
 	}
 	public BufferedImage getLine(int x){
-		return img.getSubimage(x, 0, 1, height);
+		int pos = x;
+		if(pos < 0)
+			pos = 0;
+		if(pos >= width)
+			pos = width -1;
+		return img.getSubimage(pos, 0, 1, height);
 	}
 }

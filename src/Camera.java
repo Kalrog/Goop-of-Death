@@ -12,7 +12,7 @@ public class Camera implements KeyListener, MouseListener {
 	public double xPos, yPos, xDir, yDir, xPlane, yPlane;
 	public boolean left, right, forward, back, focused;
 	public final double MOVE_SPEED = .08;
-	public final double ROTATION_SPEED = .0045;
+	public final double ROTATION_SPEED = .0025;
 	Robot rob = null;
 
 	public Camera(double xPos, double yPos, double xDir, double yDir, double xPlane, double yPlane) {
