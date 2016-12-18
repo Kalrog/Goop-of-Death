@@ -27,12 +27,14 @@ public class Main extends JFrame implements Runnable {
 								  { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 } };
 	Thread thread;
 	Camera cam;
-	boolean focused = true;
+	Screen screen;
+	boolean focused = false;
 
 	public Main() {
 		thread = new Thread(this);
 		image = new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
-		cam = new Camera(3,3,1,0,0,0.7);
+		cam = new Camera(2,2,-1,0,0,0.8);
+		screen = new Screen(world,640,480);
 		addKeyListener(cam);
 		addMouseListener(cam);
 		setSize(640, 480);
@@ -67,9 +69,11 @@ public class Main extends JFrame implements Runnable {
 	@Override
 	public void run() {
 		while (running) {
-			cam.update(world);
+			cam.update(world,getX(),getY());
+			screen.update(cam, image);
 			render();
 			if(focused != cam.focused){
+				focused = cam.focused;
 				if(cam.focused){
 					BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 					Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(

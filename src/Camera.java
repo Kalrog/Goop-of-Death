@@ -12,7 +12,7 @@ public class Camera implements KeyListener, MouseListener {
 	public double xPos, yPos, xDir, yDir, xPlane, yPlane;
 	public boolean left, right, forward, back, focused;
 	public final double MOVE_SPEED = .08;
-	public final double ROTATION_SPEED = .045;
+	public final double ROTATION_SPEED = .0045;
 	Robot rob = null;
 
 	public Camera(double xPos, double yPos, double xDir, double yDir, double xPlane, double yPlane) {
@@ -30,10 +30,10 @@ public class Camera implements KeyListener, MouseListener {
 		}
 	}
 
-	public void update(int[][] map) {
+	public void update(int[][] map, int winx, int winy) {
 		if (focused) {
-			int mousex = MouseInfo.getPointerInfo().getLocation().x - 200;
-			rob.mouseMove(200, 200);
+			int mousex =  winx + 200 - MouseInfo.getPointerInfo().getLocation().x;
+			rob.mouseMove(200 + winx, 200 + winy);
 			double oldxDir = xDir;
 			xDir = xDir * Math.cos(ROTATION_SPEED * mousex) - yDir * Math.sin(ROTATION_SPEED * mousex);
 			yDir = oldxDir * Math.sin(ROTATION_SPEED * mousex) + yDir * Math.cos(ROTATION_SPEED * mousex);
@@ -52,6 +52,20 @@ public class Camera implements KeyListener, MouseListener {
 					xPos -= xDir * MOVE_SPEED;
 				if (map[(int) xPos][(int) (yPos - yDir * MOVE_SPEED)] == 0)
 					yPos -= yDir * MOVE_SPEED;
+			}
+			if (right) {
+				if (map[(int) (xPos - yDir * MOVE_SPEED)][(int) yPos] == 0) {
+					xPos -= yDir * MOVE_SPEED;
+				}
+				if (map[(int) xPos][(int) (yPos + xDir * MOVE_SPEED)] == 0)
+					yPos += xDir * MOVE_SPEED;
+			}
+			if (left) {
+				if (map[(int) (xPos + yDir * MOVE_SPEED)][(int) yPos] == 0) {
+					xPos += yDir * MOVE_SPEED;
+				}
+				if (map[(int) xPos][(int) (yPos - xDir * MOVE_SPEED)] == 0)
+					yPos -= xDir * MOVE_SPEED;
 			}
 		}
 	}
