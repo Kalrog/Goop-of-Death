@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -7,7 +8,12 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
 
-public class Main extends JFrame implements Runnable {
+public class Game extends JFrame implements Runnable {
+	public static final String[] TEXPATHS = 
+			new String[]{"resources/arrow.png",
+					"resources/creepy.png",
+					"resources/testtexture.png"};
+	Texture[] textures;
 	boolean running;
 	BufferedImage image;
 	int[][] world = new int[][] { { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
@@ -30,11 +36,17 @@ public class Main extends JFrame implements Runnable {
 	Screen screen;
 	boolean focused = false;
 
-	public Main() {
+	public Game() {
 		thread = new Thread(this);
 		image = new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
 		cam = new Camera(2,2,-1,0,0,0.8);
 		screen = new Screen(world,640,480);
+		textures = new Texture[TEXPATHS.length];
+		System.out.println("Loading Textures");
+		for(int i = 0; i < TEXPATHS.length;i++){
+			textures[i] = new Texture(TEXPATHS[i]);
+			System.out.println("Done loading " + TEXPATHS[i]);
+		}
 		addKeyListener(cam);
 		addMouseListener(cam);
 		setSize(640, 480);
@@ -63,7 +75,7 @@ public class Main extends JFrame implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		Main game = new Main();
+		Game game = new Game();
 	}
 
 	@Override
@@ -92,8 +104,12 @@ public class Main extends JFrame implements Runnable {
 	}
 
 	public void render() {
-		Graphics g = getBufferStrategy().getDrawGraphics();
+		Graphics g = getBufferStrategy().getDrawGraphics(); 
 		g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+		g.setColor(Color.BLACK);
+		g.setFont(Font.getFont("Arial"));
+		g.drawString("X: "+ cam.xPos + " Y: " + cam.yPos , 5, 15); 
+		g.drawString("X: "+ cam.xDir + " Y: " + cam.yDir , 5, 25);
 		getBufferStrategy().show();
 	}
 

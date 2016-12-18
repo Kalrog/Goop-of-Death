@@ -16,7 +16,7 @@ public class Screen {
 		width = w;
 		height = h;
 		try {
-			testtexture = ImageIO.read(new File("resources/testtexture.png"));
+			testtexture = ImageIO.read(new File("resources/arrow.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -125,6 +125,11 @@ public class Screen {
 		      else           wallX = rayX + perpWallDist * rayXDir;
 		      wallX -= Math.floor((wallX));
 		      int texturepos = (int) (wallX * testtexture.getWidth());
+		      if(side == 1 && stepY < 0 || side == 0 && stepX > 0){
+		    	  texturepos = testtexture.getWidth()- 1 - texturepos;
+		    	  if(texturepos < 0)
+		    		  texturepos = 0;
+		      }
 			g.drawImage(testtexture.getSubimage(texturepos, 0, 1, testtexture.getHeight()), i, wallStart,1,wallLength, null);
 		}
 	}
