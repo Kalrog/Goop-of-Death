@@ -10,9 +10,9 @@ import javax.swing.JFrame;
 
 public class Game extends JFrame implements Runnable {
 	public static final String[] TEXPATHS = 
-			new String[]{"resources/arrow.png",
-					"resources/creepy.png",
-					"resources/testtexture.png"};
+			new String[]{"resources/testtexture.png",
+					"resources/arrow.png",
+					"resources/creepy.png"};
 	Texture[] textures;
 	boolean running;
 	BufferedImage image;
@@ -27,7 +27,7 @@ public class Game extends JFrame implements Runnable {
 								  { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1 },
 								  { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1 }, 
 								  { 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1 },
-								  { 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1 }, 
+								  { 1, 0, 0, 3, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1 }, 
 								  { 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1 },
 								  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, 
 								  { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 } };
@@ -39,7 +39,7 @@ public class Game extends JFrame implements Runnable {
 	public Game() {
 		thread = new Thread(this);
 		image = new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
-		cam = new Camera(2,2,-1,0,0,0.8);
+		cam = new Camera(2,2,-1,0,0,0.66);
 		screen = new Screen(world,640,480);
 		textures = new Texture[TEXPATHS.length];
 		System.out.println("Loading Textures");
@@ -82,7 +82,7 @@ public class Game extends JFrame implements Runnable {
 	public void run() {
 		while (running) {
 			cam.update(world,getX(),getY());
-			screen.update(cam, image);
+			screen.update(cam, image,textures);
 			render();
 			if(focused != cam.focused){
 				focused = cam.focused;

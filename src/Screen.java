@@ -22,7 +22,7 @@ public class Screen {
 		}
 	}
 
-	public void update(Camera cam, BufferedImage img) {
+	public void update(Camera cam, BufferedImage img,Texture[] textures) {
 		Graphics g = img.getGraphics();
 		g.setColor(Color.lightGray);
 		g.fillRect(0, 0, img.getWidth(), img.getHeight() / 2);
@@ -124,13 +124,15 @@ public class Screen {
 		      if (side == 0) wallX = rayY + perpWallDist * rayYDir;
 		      else           wallX = rayX + perpWallDist * rayXDir;
 		      wallX -= Math.floor((wallX));
-		      int texturepos = (int) (wallX * testtexture.getWidth());
+		      int texturepos = (int) (wallX * textures[map[mapX][mapY]-1].width);
 		      if(side == 1 && stepY < 0 || side == 0 && stepX > 0){
-		    	  texturepos = testtexture.getWidth()- 1 - texturepos;
-		    	  if(texturepos < 0)
+		    	  texturepos = textures[map[mapX][mapY]-1].width - 1 - texturepos;
+		    	  /*if(texturepos < 0)
 		    		  texturepos = 0;
+		    	  if(texturepos >= textures[map[mapX][mapY]-1].width-1)
+		    		  texturepos = textures[map[mapX][mapY]-1].width-2;*/
 		      }
-			g.drawImage(testtexture.getSubimage(texturepos, 0, 1, testtexture.getHeight()), i, wallStart,1,wallLength, null);
+			g.drawImage(textures[map[mapX][mapY]-1].getLine(texturepos), i,wallStart, 1, wallLength, null);
 		}
 	}
 }
